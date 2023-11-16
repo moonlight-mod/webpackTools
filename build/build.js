@@ -1,6 +1,6 @@
 import * as esbuild from 'esbuild'
 
-const context = await esbuild.context({
+await esbuild.build({
   entryPoints: ['src/index.js'],
   bundle: true,
   outfile: 'dist/webpackToolsRuntime.js',
@@ -9,5 +9,3 @@ const context = await esbuild.context({
     'es2020',
   ],
 })
-
-await context.build()
