@@ -1,5 +1,14 @@
 import config from "./config";
 
+function matchModule(moduleStr, find) {
+  if (find instanceof RegExp) {
+    // todo
+    return false;
+  } else {
+    return moduleStr.indexOf(patch.find) != -1;
+  }
+}
+
 const patchesToApply = new Set();
 for (const patch of config.patches) {
   patchesToApply.add(patch);
@@ -11,14 +20,13 @@ export function patchModules(modules) {
 
     const patchesToApply = [];
     for (let patch of config.patches) {
-      // TODO: support regexp matches
-      if (funcStr.indexOf(patch.find) != -1) {
-        patchesToApply.push(patch.replace);
+      if (matchModule(funcStr, patch.find)) {
+        patchesToApply.push(patch);
       }
     }
 
     for (let patchToApply of patchesToApply) {
-      funcStr = funcStr.replace(patchToApply.match, patchToApply.replacement);
+      funcStr = funcStr.replace(patchToApply.replace.match, patchToApply.replace.replacement);
     }
 
     if (patchesToApply.length > 0 || config.inspectAll) {
@@ -60,10 +68,12 @@ export function injectModules(chunk) {
   for (let moduleToInject of modulesToInject) {
     if (moduleToInject?.needs?.size > 0) {
       for (const need of moduleToInject.needs) {
-        for (let wpModule of Object.values(chunk[1])) {
-          // TODO: optimize
-          // TODO: support regexp and moduleId
-          if (wpModule.__wpt_funcStr.includes(need)) {
+        for (let wpModule of Object.entries(chunk[1])) {
+          // match { moduleId: "id" } as well as strings and regex
+          if (
+            (need?.moduleId && wpModule[0] == need.moduleId) ||
+            matchModule(wpModule[1].__wpt_funcStr, need)
+          ) {
             moduleToInject.needs.delete(need);
             if (moduleToInject.needs.size == 0) {
               readyModules.add(moduleToInject);

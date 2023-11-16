@@ -4,12 +4,12 @@
 // @version      0.1
 // @description  meow meow emwo
 // @author       adryd
-// @match        https://*
-// @match        http://*
+// @include      http://*
+// @include      https://*
 // @grant        GM_addElement
 // @grant        GM_getResourceText
 // @run-at       document-start
-// @resource     runtimeScript http://127.0.0.1:8080/webpackToolsRuntime.js
+// @resource     runtimeScript https://adryd325.github.io/webpackTools/webpackToolsRuntime.js
 // ==/UserScript==
 
 (() => {
@@ -21,6 +21,7 @@
         webpackVersion: 5,
         patches: [],
         modules: [],
+        inspectAll: true
       },
       {
         name: "twitter",
