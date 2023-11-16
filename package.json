@@ -1,0 +1,15 @@
+{
+  "name": "webpacktools",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webpackPreload.user.js",
+  "scripts": {
+    "build": "node build/build.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "0.19.5"
+  },
+  "type": "module"
+}
