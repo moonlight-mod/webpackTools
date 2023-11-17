@@ -1,12 +1,16 @@
 import config from "./config";
+import magicrequire from "./magicrequire"
 
-function matchModule(moduleStr, find) {
-  if (find instanceof RegExp) {
-    // todo
-    return false;
-  } else {
-    return moduleStr.indexOf(patch.find) != -1;
-  }
+export function matchModule(moduleStr, find) {
+  const findArray = find instanceof Array ? find : [find];
+  return findArray.some((query) => {
+    // we like our microoptimizations https://jsben.ch/Zk8aw
+    if (query instanceof RegExp) {
+        return moduleStr.match(query)
+    } else {
+        return moduleStr.includes(query) != -1
+    }
+  })
 }
 
 const patchesToApply = new Set();
@@ -53,14 +57,12 @@ for (const module of config.modules) {
   modulesToInject.add(module);
 }
 
-//// Expose webpackRequire in global scope
-// modulesToInject.add({
-//   name: "webpackRequire",
-//   run: (module, exports, webpackRequire) => {
-//     window.webpackRequire = webpackRequire;
-//   },
-//   entry: true,
-// });
+// add placeholder magicrequire whatever
+modulesToInject.add({
+  name: "magicrequire",
+  run: magicrequire,
+  entry: true,
+});
 
 export function injectModules(chunk) {
   const readyModules = new Set();
