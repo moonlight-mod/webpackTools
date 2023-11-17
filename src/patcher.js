@@ -8,7 +8,7 @@ export function matchModule(moduleStr, find) {
     if (query instanceof RegExp) {
         return moduleStr.match(query)
     } else {
-        return moduleStr.includes(query) != -1
+        return moduleStr.includes(query)
     }
   })
 }
