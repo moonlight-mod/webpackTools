@@ -40,7 +40,7 @@ export function matchModule(moduleStr, find) {
     if (query instanceof RegExp) {
       return query.test(moduleStr);
     } else {
-      return moduleStr.includes(query)
+      return moduleStr.includes(query);
     }
   });
 }
@@ -51,32 +51,28 @@ for (const patch of config.patches) {
 }
 
 export function patchModules(modules) {
-  for (let id in modules) {
+  for (const id in modules) {
     let funcStr = Function.prototype.toString.apply(modules[id]);
 
     const patchesToApply = [];
-    for (let patch of config.patches) {
+    for (const patch of config.patches) {
       if (matchModule(funcStr, patch.find)) {
         patchesToApply.push(patch);
       }
     }
 
-    for (let patchToApply of patchesToApply) {
-      funcStr = funcStr.replace(
-        patchToApply.replace.match,
-        patchToApply.replace.replacement
-      );
+    for (const patchToApply of patchesToApply) {
+      funcStr = funcStr.replace(patchToApply.replace.match, patchToApply.replace.replacement);
     }
 
     if (patchesToApply.length > 0 || config.inspectAll) {
-      const debugString =
-        "Patched by: " + patchesToApply.map((patch) => patch.name).join(", ");
+      const debugString = "Patched by: " + patchesToApply.map((patch) => patch.name).join(", ");
 
       modules[id] = new Function(
         "module",
         "exports",
         "webpackRequire",
-        `(${funcStr}).apply(this, arguments)\n// ${debugString}\n//# sourceURL=Webpack-Module-${id}`
+        `(${funcStr}).apply(this, arguments)\n// ${debugString}\n//# sourceURL=Webpack-Module-${id}`,
       );
       modules[id].__wpt_patched = true;
     }
@@ -101,15 +97,12 @@ modulesToInject.add({
 export function injectModules(chunk) {
   const readyModules = new Set();
 
-  for (let moduleToInject of modulesToInject) {
+  for (const moduleToInject of modulesToInject) {
     if (moduleToInject?.needs?.size > 0) {
       for (const need of moduleToInject.needs) {
-        for (let wpModule of Object.entries(chunk[1])) {
+        for (const wpModule of Object.entries(chunk[1])) {
           // match { moduleId: "id" } as well as strings and regex
-          if (
-            (need?.moduleId && wpModule[0] == need.moduleId) ||
-            matchModule(wpModule[1].__wpt_funcStr, need)
-          ) {
+          if ((need?.moduleId && wpModule[0] == need.moduleId) || matchModule(wpModule[1].__wpt_funcStr, need)) {
             moduleToInject.needs.delete(need);
             if (moduleToInject.needs.size == 0) {
               readyModules.add(moduleToInject);
@@ -153,8 +146,7 @@ export function injectModules(chunk) {
           }
           break;
         case 4:
-          const originalEntry = chunk[2] ?? [];
-          chunk[2] = originalEntry.concat(injectEntries);
+          chunk[2] = (chunk[2] ?? []).concat(injectEntries);
           break;
       }
     }

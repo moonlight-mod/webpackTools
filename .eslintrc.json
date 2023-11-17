@@ -1,0 +1,18 @@
+{
+  "extends": "eslint:recommended",
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaFeatures": {},
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "indent": 0,
+    "quotes": [1, "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
+    "no-unused-vars": [1, { "args": "none", "varsIgnorePattern": "^_" }]
+  }
+}
