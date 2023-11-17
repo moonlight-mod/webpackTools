@@ -1,16 +1,48 @@
 import config from "./config";
-import magicrequire from "./magicrequire"
+import wpTools from "./wpTools";
+
+export function interceptWebpack() {
+  const chunkObjectName = config.chunkObject;
+
+  // This is necesary since some sites (twitter) define the chunk object earlier
+  let realChunkObject = window[chunkObjectName];
+
+  Object.defineProperty(window, chunkObjectName, {
+    set: function set(value) {
+      // Don't infinitely re-wrap .push()
+      if (!value.push.__wpt_injected) {
+        realChunkObject = value;
+        const webpackPush = value.push;
+
+        value.push = function (chunk) {
+          if (!webpackPush.__wpt_injected) {
+            patchModules(chunk[1]);
+            injectModules(chunk);
+          }
+          return webpackPush.apply(this, arguments);
+        };
+
+        value.push.__wpt_injected = true;
+        console.log("injected " + chunkObjectName);
+      }
+    },
+    get: function get() {
+      return realChunkObject;
+    },
+    configurable: true,
+  });
+}
 
 export function matchModule(moduleStr, find) {
   const findArray = find instanceof Array ? find : [find];
   return findArray.some((query) => {
     // we like our microoptimizations https://jsben.ch/Zk8aw
     if (query instanceof RegExp) {
-        return moduleStr.match(query)
+      return query.test(moduleStr);
     } else {
-        return moduleStr.includes(query)
+      return moduleStr.includes(query)
     }
-  })
+  });
 }
 
 const patchesToApply = new Set();
@@ -30,7 +62,10 @@ export function patchModules(modules) {
     }
 
     for (let patchToApply of patchesToApply) {
-      funcStr = funcStr.replace(patchToApply.replace.match, patchToApply.replace.replacement);
+      funcStr = funcStr.replace(
+        patchToApply.replace.match,
+        patchToApply.replace.replacement
+      );
     }
 
     if (patchesToApply.length > 0 || config.inspectAll) {
@@ -57,10 +92,9 @@ for (const module of config.modules) {
   modulesToInject.add(module);
 }
 
-// add placeholder magicrequire whatever
 modulesToInject.add({
-  name: "magicrequire",
-  run: magicrequire,
+  name: "wpTools",
+  run: wpTools,
   entry: true,
 });
 
@@ -101,7 +135,8 @@ export function injectModules(chunk) {
       }
     }
 
-    chunk[1] = Object.assign(chunk[1], injectModules);
+    // Patch our own modules, for fun :)
+    chunk[1] = Object.assign(chunk[1], patchModules(injectModules));
     if (injectEntries.length > 0) {
       switch (config.webpackVersion) {
         case 5:

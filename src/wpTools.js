@@ -1,6 +1,6 @@
 import { matchModule } from "./patcher";
 
-export default function magicrequire(module, exports, webpackRequire) {
+export default function wpTools(module, exports, webpackRequire) {
     // https://github.com/webpack/webpack/blob/main/lib/RuntimeGlobals.js
     // modules: webpackRequire.m
     // exports: webpackRequire.c
@@ -22,7 +22,7 @@ export default function magicrequire(module, exports, webpackRequire) {
 
     
     // some cyn magic
-    window.magicrequire = module.exports.default = exports.default = {
+    window.wpTools = module.exports.default = exports.default = {
         findModulesByExports,
         findModulesByMatches,
         inspectModule,
