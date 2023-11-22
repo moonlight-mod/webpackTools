@@ -39,7 +39,7 @@
             needs: new Set(), // set of strings, or regexes of modules that need to be loaded before injecting this one. can also be `{moduleId: <moduleId>}` if depending on other injected or named modules
             entry: true, // if true, the module will evaluate immediately uppon injection. otherwise it will not evaluate until it's require()'d by another module
             run: function (module, exports, webpackRequire) { // the actual webpack module.
-              console.log("Module Injection works!!!");
+              console.log("Module injection works!!!");
             },
           },
         ]

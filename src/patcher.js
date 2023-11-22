@@ -47,9 +47,9 @@ export function matchModule(moduleStr, queryArg) {
 
 const patchesToApply = new Set();
 if (config.patches) {
-for (const patch of config.patches) {
-  patchesToApply.add(patch);
-}
+  for (const patch of config.patches) {
+    patchesToApply.add(patch);
+  }
 }
 export function patchModules(modules) {
   for (const id in modules) {
@@ -135,11 +135,11 @@ export function injectModules(chunk) {
     }
 
     // Patch our own modules, for fun :)
-    patchModules(injectModules)
+    patchModules(injectModules);
     chunk[1] = Object.assign(chunk[1], injectModules);
     if (injectEntries.length > 0) {
       switch (config.webpackVersion) {
-        case 5:
+        case "5":
           if (chunk[2]) {
             const originalEntry = chunk[2];
             chunk[2] = function (webpackRequire) {
@@ -152,7 +152,7 @@ export function injectModules(chunk) {
             };
           }
           break;
-        case 4:
+        case "4":
           chunk[2] = (chunk[2] ?? []).concat(injectEntries);
           break;
       }
