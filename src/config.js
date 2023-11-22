@@ -2,4 +2,8 @@ const config = window.__webpackTools_siteConfig;
 delete window.__webpackTools_siteConfig;
 
 // todo: validate configs
-export default config
+// function validateConfig(config) {
+//   const nameValid = config.name == undefined && typeof(config.name) == "string"
+// }
+
+export default config;
