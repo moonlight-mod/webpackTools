@@ -1,13 +1,11 @@
-import * as esbuild from 'esbuild'
+import * as esbuild from "esbuild";
 
 const context = await esbuild.context({
-  entryPoints: ['src/index.js'],
+  entryPoints: ["src/index.js"],
   bundle: true,
-  outfile: 'dist/webpackToolsDev.user.js',
-  logLevel: 'info',
-  target: [
-    'es2020',
-  ],
-})
+  outfile: "dist/webpackToolsRuntime.js",
+  logLevel: "info",
+  target: ["es2020"],
+});
 
-await context.watch()
+await context.watch();

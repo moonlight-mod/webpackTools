@@ -8,7 +8,7 @@ export default function wpTools(module, exports, webpackRequire) {
   // TODO: recurse in objects
   function findModulesByExports(keysArg) {
     const keys = keysArg instanceof Array ? keysArg : [keysArg];
-    Object.entries(webpackRequire.c)
+    return Object.entries(webpackRequire.c)
       .filter(([moduleId, exportCache]) => {
         return !keys.some((searchKey) => {
           return !(
@@ -18,17 +18,25 @@ export default function wpTools(module, exports, webpackRequire) {
           );
         });
       })
-      .map(([moduleId, exportCache]) => exportCache);
+      .map(([moduleId, exportCache]) => {
+        return {
+          id: moduleId,
+          exports: exportCache,
+        };
+      });
   }
 
   function findModulesByMatches(search) {
-    return Object.entires(webpackRequire.m)
+    return Object.entries(webpackRequire.m)
       .filter(([moduleId, moduleFunc]) => {
         const funcStr = Function.prototype.toString.apply(moduleFunc);
         return matchModule(funcStr, search);
       })
       .map(([moduleId, moduleFunc]) => {
-        webpackRequire(moduleId);
+        return {
+          id: moduleId,
+          exports: webpackRequire(moduleId),
+        };
       });
   }
 

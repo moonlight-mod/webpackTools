@@ -1,11 +1,9 @@
-import * as esbuild from 'esbuild'
+import * as esbuild from "esbuild";
 
 await esbuild.build({
-  entryPoints: ['src/index.js'],
+  entryPoints: ["src/index.js"],
   bundle: true,
-  outfile: 'dist/webpackToolsRuntime.js',
-  logLevel: 'info',
-  target: [
-    'es2020',
-  ],
-})
+  outfile: "dist/webpackToolsRuntime.js",
+  logLevel: "info",
+  target: ["es2020"],
+});

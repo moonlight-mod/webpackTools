@@ -133,7 +133,8 @@ export function injectModules(chunk) {
     }
 
     // Patch our own modules, for fun :)
-    chunk[1] = Object.assign(chunk[1], patchModules(injectModules));
+    patchModules(injectModules)
+    chunk[1] = Object.assign(chunk[1], injectModules);
     if (injectEntries.length > 0) {
       switch (config.webpackVersion) {
         case 5:
