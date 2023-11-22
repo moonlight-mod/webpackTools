@@ -54,19 +54,20 @@ export function patchModules(modules) {
   for (const id in modules) {
     let funcStr = Function.prototype.toString.apply(modules[id]);
 
-    const patchesToApply = [];
-    for (const patch of config.patches) {
+    const matchingPatches = [];
+    for (const patch of patchesToApply) {
       if (matchModule(funcStr, patch.find)) {
-        patchesToApply.push(patch);
+        matchingPatches.push(patch);
+        patchesToApply.delete(patch);
       }
     }
 
-    for (const patchToApply of patchesToApply) {
-      funcStr = funcStr.replace(patchToApply.replace.match, patchToApply.replace.replacement);
+    for (const patch of matchingPatches) {
+      funcStr = funcStr.replace(patch.replace.match, patch.replace.replacement);
     }
 
-    if (patchesToApply.length > 0 || config.inspectAll) {
-      const debugString = "Patched by: " + patchesToApply.map((patch) => patch.name).join(", ");
+    if (matchingPatches.length > 0 || config.inspectAll) {
+      const debugString = "Patched by: " + matchingPatches.map((patch) => patch.name).join(", ");
 
       modules[id] = new Function(
         "module",
@@ -83,9 +84,11 @@ export function patchModules(modules) {
 }
 
 const modulesToInject = new Set();
-for (const module of config.modules) {
-  module.needs = new Set(module.needs);
-  modulesToInject.add(module);
+if (config.modules) {
+  for (const module of config.modules) {
+    module.needs = new Set(module.needs);
+    modulesToInject.add(module);
+  }
 }
 
 modulesToInject.add({
