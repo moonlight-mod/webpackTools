@@ -33,9 +33,9 @@ export function interceptWebpack() {
   });
 }
 
-export function matchModule(moduleStr, find) {
-  const findArray = find instanceof Array ? find : [find];
-  return findArray.some((query) => {
+export function matchModule(moduleStr, queryArg) {
+  const queryArray = queryArg instanceof Array ? queryArg : [queryArg];
+  return queryArray.some((query) => {
     // we like our microoptimizations https://jsben.ch/Zk8aw
     if (query instanceof RegExp) {
       return query.test(moduleStr);

@@ -3,7 +3,8 @@
   "env": {
     "browser": true,
     "es2021": true,
-    "node": true
+    "node": true,
+    "greasemonkey": true
   },
   "parserOptions": {
     "ecmaFeatures": {},
