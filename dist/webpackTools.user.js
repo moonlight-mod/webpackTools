@@ -47,7 +47,18 @@
     ]
   };
 
-  unsafeWindow.__webpackTools_config = configs;
+  let thisSiteConfig;
+  for (let siteConfig of configs.siteConfigs) {
+    if (siteConfig.matchSites?.includes(window.location.host)) {
+      thisSiteConfig = siteConfig;
+      break;
+    }
+  }
+  if (!thisSiteConfig) {
+    return;
+  }
+
+  unsafeWindow.__webpackTools_siteConfig = thisSiteConfig;
 
   GM_addElement("script", {
     textContent: GM_getResourceText("runtimeScript"),
