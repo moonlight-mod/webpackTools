@@ -11,8 +11,10 @@ export default function wpTools(module, exports, webpackRequire) {
     Object.entries(webpackRequire.c)
       .filter(([moduleId, exportCache]) => {
         return !keys.some((searchKey) => {
-          return (
-            exportCache != undefined && exportCache != window && (exports?.[searchKey] || exports?.default?.[searchKey])
+          return !(
+            exportCache != undefined &&
+            exportCache != window &&
+            (exports?.[searchKey] || exports?.default?.[searchKey])
           );
         });
       })
@@ -32,7 +34,7 @@ export default function wpTools(module, exports, webpackRequire) {
 
   function inspectModule(moduleId) {
     /* TODO: rewrap modules if not patched.
-     * This used to isolate modules like wrapping them in the patcher stage did, 
+     * This used to isolate modules like wrapping them in the patcher stage did,
      * however this seems to have broken in newer browsers */
     return webpackRequire.m[moduleId];
   }
@@ -45,7 +47,6 @@ export default function wpTools(module, exports, webpackRequire) {
 
   // TODO: SWC helpers
   // function getDefault() {}
-
 
   window.wpTools =
     module.exports.default =
