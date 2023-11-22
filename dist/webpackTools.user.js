@@ -13,57 +13,41 @@
 // ==/UserScript==
 
 (() => {
-  const configs = [
-    {
-      name: "discord",
-      matchSites: ["discord.com", "ptb.discord.com", "canary.discord.com"],
-      chunkObject: "webpackChunkdiscord_app",
-      webpackVersion: 5,
-      patches: [],
-      modules: [],
-      inspectAll: true,
-    },
-    {
-      name: "twitter",
-      matchSites: ["twitter.com"],
-      chunkObject: "webpackChunk_twitter_responsive_web",
-      webpackVersion: 5,
-      patches: [
-        {
-          name: "patchingDemo",
-          find: "(window.__INITIAL_STATE__",
-          replace: {
-            match: /const .{1,3}=.\..\(window\.__INITIAL_STATE__/,
-            replacement: (orig) => `console.log('Patches work!!!');${orig}`,
+  const configs = {
+    wpToolsEverywhere: true, // not yet implemented
+    siteConfigs: [
+      {
+        _name: "twitter", // Not parsed, for documentation purposes
+        matchSites: ["twitter.com"], // String or Array of strings of sites to inject on. Matches globs (eg. *.discord.com)
+        chunkObject: "webpackChunk_twitter_responsive_web", // Name of webpack chunk object to intercept
+        webpackVersion: "5", // Version of webpack used to compile. TODO: Document this. Supported are 4 and 5
+        inspectAll: true, // Whether to isolate every module. Allows for viewing an individual module in devtools without the whole rest of the chunk
+        patches: [
+          {
+            name: "patchingDemo", // Used for debugging purposes, logging if a patch fails (TODO) and a comment of which patches affected a module
+            find: "(window.__INITIAL_STATE__", // String, regexp or an array of them to match a module we're patching. Best to keep this a single string if possible for performance reasons
+            replace: {
+              // match and replace are literally passed to `String.prototype.replace(match, replacement)`
+              match: /const .{1,3}=.\..\(window\.__INITIAL_STATE__/,
+              replacement: (orig) => `console.log('Patches work!!!');${orig}`,
+            },
           },
-        },
-      ],
-      modules: [
-        {
-          name: "exposeWpRequire",
-          needs: [],
-          entry: true,
-          run: function (module, exports, webpackRequire) {
-            console.log("meowwie");
-            unsafeWindow.wpRequire = webpackRequire;
+        ],
+        modules: [
+          { 
+            name: "modulesDemo", // name the function will use when injected, required
+            needs: new Set(), // set of strings, or regexes of modules that need to be loaded before injecting this one. can also be `{moduleId: <moduleId>}` if depending on other injected or named modules
+            entry: true, // if true, the module will evaluate immediately uppon injection. otherwise it will not evaluate until it's require()'d by another module
+            run: function (module, exports, webpackRequire) { // the actual webpack module.
+              console.log("Module Injection works!!!");
+            },
           },
-        },
-      ],
-    },
-  ];
+        ]
+      }
+    ]
+  };
 
-  let thisSiteConfig;
-  for (let siteConfig of configs) {
-    if (siteConfig.matchSites?.includes(window.location.host)) {
-      thisSiteConfig = siteConfig;
-      break;
-    }
-  }
-  if (!thisSiteConfig) {
-    return;
-  }
-
-  unsafeWindow.__webpackTools_siteConfig = thisSiteConfig;
+  unsafeWindow.__webpackTools_config = configs;
 
   GM_addElement("script", {
     textContent: GM_getResourceText("runtimeScript"),

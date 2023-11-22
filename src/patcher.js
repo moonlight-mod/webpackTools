@@ -87,7 +87,9 @@ export function patchModules(modules) {
 const modulesToInject = new Set();
 if (config.modules) {
   for (const module of config.modules) {
-    module.needs = new Set(module.needs);
+    if (module.needs != undefined && module.needs instanceof Array) {
+      module.needs = new Set(module.needs);
+    }
     modulesToInject.add(module);
   }
 }
