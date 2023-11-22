@@ -46,10 +46,11 @@ export function matchModule(moduleStr, queryArg) {
 }
 
 const patchesToApply = new Set();
+if (config.patches) {
 for (const patch of config.patches) {
   patchesToApply.add(patch);
 }
-
+}
 export function patchModules(modules) {
   for (const id in modules) {
     let funcStr = Function.prototype.toString.apply(modules[id]);
