@@ -61,9 +61,5 @@ export default function wpTools(module, exports, webpackRequire) {
         findModulesByMatches,
         inspectModule,
         webpackRequire,
-
-        // magicrequire habits
-        exportCache: findModulesByExports,
-        generatorText: findModulesByMatches,
       };
 }
