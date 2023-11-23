@@ -14,4 +14,5 @@ const templateStr = await fs.promises.readFile("userscriptTemplate.js", { encodi
 const runtimeStr = JSON.stringify(runtimeWithSourceUrl)
 
 fs.promises.writeFile("dist/webpackTools.user.js", templateStr.replace('"{{ REPLACE_ME RUNTIME }}"', runtimeStr));
-fs.promises.writeFile("dist/webpackTools.runtime.js", runtimeStr)
+fs.promises.writeFile("dist/webpackTools.runtime.json", runtimeStr)
+fs.promises.writeFile("dist/webpackTools.runtime.js", buildResult.outputFiles[0].text)
