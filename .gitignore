@@ -1,2 +1,4 @@
-dist/webpackToolsRuntime.js
+dist/webpackTools.user.js
+dist/webpackTools.runtime.js
+dist/webpackTools.runtime.json
 node_modules

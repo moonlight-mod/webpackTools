@@ -151,7 +151,18 @@ function injectModules(chunk) {
       }
     }
 
+    // Convert array to object for named modules
+    if (chunk[1] instanceof Array) {
+      const origChunkArray = chunk[1];
+      chunk[1] = {};
+      origChunkArray.forEach((module, index) => {
+        chunk[1][index] = module;
+      });
+    }
+
+    // merge our modules with original modules
     chunk[1] = Object.assign(chunk[1], injectModules);
+
     if (injectEntries.length > 0) {
       switch (config.webpackVersion) {
         case "5":
@@ -168,9 +179,14 @@ function injectModules(chunk) {
           }
           break;
         case "4":
-          chunk[2] = (chunk[2] ?? []).concat(injectEntries);
+          if (chunk[2]?.[0]) {
+            chunk[2]?.[0].concat([injectEntries]);
+          } else {
+            chunk[2] = [injectEntries];
+          }
           break;
       }
     }
+    console.log(chunk);
   }
 }
