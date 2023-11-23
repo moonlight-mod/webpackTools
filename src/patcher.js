@@ -1,6 +1,35 @@
 import config from "./config";
 import wpTools from "./wpTools";
 
+let patchesToApply, modulesToInject;
+
+if (config) {
+  patchesToApply = new Set();
+  if (config.patches) {
+    for (const patch of config.patches) {
+      patchesToApply.add(patch);
+    }
+  }
+
+  modulesToInject = new Set();
+  if (config.modules) {
+    for (const module of config.modules) {
+      if (module.needs != undefined && module.needs instanceof Array) {
+        module.needs = new Set(module.needs);
+      }
+      modulesToInject.add(module);
+    }
+  }
+
+  modulesToInject.add({
+    name: "wpTools",
+    // This is sorta a scope hack.
+    // If we rewrap this function, it will lose its scope (in this case the match module import)
+    run: wpTools,
+    entry: true,
+  });
+}
+
 export function interceptWebpack() {
   const chunkObjectName = config.chunkObject;
 
@@ -9,21 +38,31 @@ export function interceptWebpack() {
 
   Object.defineProperty(window, chunkObjectName, {
     set: function set(value) {
+      realChunkObject = value;
       // Don't infinitely re-wrap .push()
+      // Every webpack chunk reassigns the chunk array, triggering the setter every time
+      // `(self.webpackChunk = self.webpackChunk || [])`
       if (!value.push.__wpt_injected) {
         realChunkObject = value;
-        const webpackPush = value.push;
+        const realPush = value.push;
 
         value.push = function (chunk) {
-          if (!webpackPush.__wpt_injected) {
+          // This is necesary because webpack will re-wrap the .push function
+          // Without this check, we'll patch modules multiple times
+          if (!chunk.__wpt_processed) {
+            chunk.__wpt_processed = true;
             patchModules(chunk[1]);
             injectModules(chunk);
           }
-          return webpackPush.apply(this, arguments);
+          return realPush.apply(this, arguments);
         };
 
         value.push.__wpt_injected = true;
-        console.log("injected " + chunkObjectName);
+        if (realPush == Array.prototype.push) {
+          console.log("Injected " + chunkObjectName + " (before webpack runtime)");
+        } else {
+          console.log("Injected " + chunkObjectName + " (at webpack runtime)");
+        }
       }
     },
     get: function get() {
@@ -45,13 +84,7 @@ export function matchModule(moduleStr, queryArg) {
   });
 }
 
-const patchesToApply = new Set();
-if (config.patches) {
-  for (const patch of config.patches) {
-    patchesToApply.add(patch);
-  }
-}
-export function patchModules(modules) {
+function patchModules(modules) {
   for (const id in modules) {
     let funcStr = Function.prototype.toString.apply(modules[id]);
 
@@ -84,23 +117,7 @@ export function patchModules(modules) {
   }
 }
 
-const modulesToInject = new Set();
-if (config.modules) {
-  for (const module of config.modules) {
-    if (module.needs != undefined && module.needs instanceof Array) {
-      module.needs = new Set(module.needs);
-    }
-    modulesToInject.add(module);
-  }
-}
-
-modulesToInject.add({
-  name: "wpTools",
-  run: wpTools,
-  entry: true,
-});
-
-export function injectModules(chunk) {
+function injectModules(chunk) {
   const readyModules = new Set();
 
   for (const moduleToInject of modulesToInject) {
@@ -134,8 +151,6 @@ export function injectModules(chunk) {
       }
     }
 
-    // Patch our own modules, for fun :)
-    patchModules(injectModules);
     chunk[1] = Object.assign(chunk[1], injectModules);
     if (injectEntries.length > 0) {
       switch (config.webpackVersion) {

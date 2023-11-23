@@ -19,10 +19,7 @@ export default function wpTools(module, exports, webpackRequire) {
         });
       })
       .map(([moduleId, exportCache]) => {
-        return {
-          id: moduleId,
-          exports: exportCache,
-        };
+        return exportCache;
       });
   }
 

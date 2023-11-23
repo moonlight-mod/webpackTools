@@ -1,9 +1,12 @@
-const config = window.__webpackTools_siteConfig;
-delete window.__webpackTools_siteConfig;
+const config = window.__webpackTools_config;
+delete window.__webpackTools_config;
 
-// todo: validate configs
-// function validateConfig(config) {
-//   const nameValid = config.name == undefined && typeof(config.name) == "string"
-// }
+let thisSiteConfig;
+for (let siteConfig of config.siteConfigs) {
+  if (siteConfig.matchSites?.includes(window.location.host)) {
+    thisSiteConfig = siteConfig;
+    break;
+  }
+}
 
-export default config;
+export default thisSiteConfig;
