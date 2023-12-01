@@ -1,19 +1,23 @@
 import matchModule from "./matchModule";
+import { validateProperty } from "./validate";
 import { getWpToolsFunc } from "./wpTools";
 
 export default class Patcher {
   constructor(config) {
+    this._validateConfig(config);
     this.name = config.name;
     this.chunkObject = config.chunkObject;
-    this.webpackVersion = config.webpackVersion;
+    this.webpackVersion = config.webpackVersion.toString();
     this.inspectAll = config.inspectAll;
 
     this.modules = new Set(config.modules ?? []);
-    this.patches = new Set(config.patches ?? []);
+    for (const module of this.modules) {
+      this._validateModuleConfig(module);
+    }
 
-    // Validation
-    if (typeof this.webpackVersion == "number") {
-      this.webpackVersion = this.webpackVersion.toString();
+    this.patches = new Set(config.patches ?? []);
+    for (const patch of this.patches) {
+      this._validatePatchConfig(patch);
     }
 
     // Populate patches to apply and modules to inject
@@ -27,14 +31,14 @@ export default class Patcher {
     this.modulesToInject = new Set();
     if (this.modules) {
       for (const module of this.modules) {
-        if (module.needs != undefined && module.needs instanceof Array) {
+        if (module.needs !== undefined && module.needs instanceof Array) {
           module.needs = new Set(module.needs);
         }
         this.modulesToInject.add(module);
       }
     }
 
-    if (config.injectWpTools) {
+    if (config.injectWpTools !== false) {
       this.modulesToInject.add({
         name: "wpTools",
         // This is sorta a scope hack.
@@ -46,7 +50,7 @@ export default class Patcher {
   }
 
   run() {
-    if (this.webpackVersion == "4" || this.webpackVersion == "5") {
+    if (this.webpackVersion === "4" || this.webpackVersion === "5") {
       this._interceptWebpackModern();
     } else {
       this._interceptWebpackLegacy;
@@ -80,7 +84,7 @@ export default class Patcher {
           };
 
           value.push.__wpt_injected = true;
-          if (realPush == Array.prototype.push) {
+          if (realPush === Array.prototype.push) {
             console.log("[wpTools] Injected " + patcher._chunkObject + " (before webpack runtime)");
           } else {
             console.log("[wpTools] Injected " + patcher._chunkObject + " (at webpack runtime)");
@@ -143,9 +147,9 @@ export default class Patcher {
         for (const need of moduleToInject.needs) {
           for (const wpModule of Object.entries(chunk[1])) {
             // match { moduleId: "id" } as well as strings and regex
-            if ((need?.moduleId && wpModule[0] == need.moduleId) || matchModule(wpModule[1].__wpt_funcStr, need)) {
+            if ((need?.moduleId && wpModule[0] === need.moduleId) || matchModule(wpModule[1].__wpt_funcStr, need)) {
               moduleToInject.needs.delete(need);
-              if (moduleToInject.needs.size == 0) {
+              if (moduleToInject.needs.size === 0) {
                 readyModules.add(moduleToInject);
               }
               break;
@@ -205,7 +209,104 @@ export default class Patcher {
             break;
         }
       }
-      console.log(chunk);
     }
+  }
+  _validateConfig(config) {
+    validateProperty("siteConfigs[?]", config, "name", true, (value) => {
+      return typeof value === "string";
+    });
+
+    const name = config.name;
+
+    validateProperty(`siteConfigs[${name}]`, config, "chunkObject", true, (value) => {
+      return typeof value === "string";
+    });
+
+    validateProperty(`siteConfigs[${name}]`, config, "webpackVersion", true, (value) => {
+      return ["4", "5"].includes(value.toString());
+    });
+
+    validateProperty(`siteConfigs[${name}]`, config, "inspectAll", false, (value) => {
+      return typeof value === "boolean";
+    });
+
+    validateProperty(`siteConfigs[${name}]`, config, "modules", false, (value) => {
+      return value instanceof Array;
+    });
+
+    validateProperty(`siteConfigs[${name}]`, config, "patches", false, (value) => {
+      return value instanceof Array;
+    });
+
+    validateProperty(`siteConfigs[${name}]`, config, "injectWpTools", false, (value) => {
+      return typeof value === "boolean";
+    });
+  }
+
+  _validatePatchConfig(config) {
+    validateProperty(`siteConfigs[${this.name}].patches[?]`, config, "name", true, (value) => {
+      return typeof value === "string";
+    });
+
+    const name = config.name;
+
+    validateProperty(`siteConfigs[${this.name}].patches[${name}]`, config, "find", true, (value) => {
+      return (
+        // RegExp, String, or an Array of RegExps and Strings
+        typeof value === "string" ||
+        value instanceof RegExp ||
+        (value instanceof Array &&
+          !value.some((value) => {
+            !(typeof value === "string" || value instanceof RegExp);
+          }))
+      );
+    });
+
+    validateProperty(`siteConfigs[${this.name}].patches[${name}]`, config, "replace", true, (value) => {
+      return typeof value === "object";
+    });
+
+    validateProperty(`siteConfigs[${this.name}].patches[${name}].replace`, config.replace, "match", true, (value) => {
+      return typeof value === "string" || value instanceof RegExp;
+    });
+
+    validateProperty(`siteConfigs[${this.name}].patches[${name}].replace`, config.replace, "replacement", true, (value) => {
+      return typeof value === "string" || value instanceof Function;
+    });
+  }
+
+  _validateModuleConfig(config) {
+    validateProperty(`siteConfigs[${this.name}].modules[?]`, config, "name", true, (value) => {
+      return typeof value === "string";
+    });
+
+    const name = config.name;
+
+    validateProperty(`siteConfigs[${this.name}].modules[${name}]`, config, "needs", false, (value) => {
+      // A set or array of strings, RegExps or `{moduleId: ""}`'s      return (
+      return (
+        (value instanceof Array || value instanceof Set) &&
+        ![...value].some((value) => {
+          !(
+            typeof value === "string" ||
+            value instanceof RegExp ||
+            (value instanceof Object && typeof value.moduleId === "string")
+          );
+        })
+      );
+    });
+
+    validateProperty(`siteConfigs[${this.name}].modules[${name}]`, config, "run", true, (value) => {
+      return typeof value === "function";
+    });
+
+    validateProperty(`siteConfigs[${this.name}].modules[${name}]`, config, "entry", false, (value) => {
+      return typeof value === "boolean";
+    });
+
+    // Possible future thing
+    // validateProperty(`siteConfigs[${this.name}].modules[${name}]`, config, "rewrap", false, (value) => {
+    //   return typeof value === "boolean";
+    // });
   }
 }

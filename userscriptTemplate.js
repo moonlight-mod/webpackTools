@@ -16,7 +16,7 @@
     wpToolsEverywhere: true, // not yet implemented
     siteConfigs: [
       {
-        name: "twitter", // Not parsed, for documentation purposes
+        name: "twitter", // Required, for documentation and debug logging
         matchSites: ["twitter.com"], // String or Array of strings of sites to inject on. Matches globs (eg. *.discord.com)
         chunkObject: "webpackChunk_twitter_responsive_web", // Name of webpack chunk object to intercept
         webpackVersion: "5", // Version of webpack used to compile. TODO: Document this. Supported are 4 and 5

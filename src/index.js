@@ -1,7 +1,5 @@
-
 import Patcher from "./Patcher";
 import { injectEverywhere } from "./injectEverywhere";
-
 
 export const globalConfig = window.__webpackTools_config;
 delete window.__webpackTools_config;

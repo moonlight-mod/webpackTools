@@ -13,8 +13,8 @@ export function getWpToolsFunc(chunkObject) {
         .filter(([moduleId, exportCache]) => {
           return !keys.some((searchKey) => {
             return !(
-              exportCache != undefined &&
-              exportCache != window &&
+              exportCache !== undefined &&
+              exportCache !== window &&
               (exports?.[searchKey] || exports?.default?.[searchKey])
             );
           });

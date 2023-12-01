@@ -13,6 +13,7 @@
   },
   "rules": {
     "indent": 0,
+    "eqeqeq":"error",
     "quotes": [1, "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
     "no-unused-vars": [1, { "args": "none", "varsIgnorePattern": "^_" }]
   }
