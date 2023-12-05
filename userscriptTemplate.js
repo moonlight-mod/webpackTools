@@ -13,7 +13,7 @@
 (() => {
   // Example config
   const config = {
-    wpToolsEverywhere: true, // not yet implemented
+    wpToolsEverywhere: true, // Automatically detect webpack objects and inject them with wpTools (not full patching)
     siteConfigs: [
       {
         name: "twitter", // Required, for documentation and debug logging

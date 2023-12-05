@@ -80,7 +80,7 @@ export function getWpToolsFunc(chunkObject, logSuccess = false) {
     // TODO: recurse in objects
     function findModulesByExports(keysArg) {
       if (!webpackRequire.c) {
-        throw new Error("webpack runtime didn't export its moduleCache")
+        throw new Error("webpack runtime didn't export its moduleCache");
       }
       const keys = keysArg instanceof Array ? keysArg : [keysArg];
       return Object.entries(webpackRequire.c)
@@ -105,10 +105,18 @@ export function getWpToolsFunc(chunkObject, logSuccess = false) {
           return matchModule(funcStr, search);
         })
         .map(([moduleId, moduleFunc]) => {
-          return {
-            id: moduleId,
-            exports: webpackRequire(moduleId),
-          };
+          try {
+            return {
+              id: moduleId,
+              exports: webpackRequire(moduleId),
+            };
+          } catch (error) {
+            console.error("Failed to require module: " + error);
+            return {
+              id: moduleId,
+              exports: {},
+            };
+          }
         });
     }
 
@@ -152,7 +160,7 @@ export function getWpToolsFunc(chunkObject, logSuccess = false) {
       runtimesRegistry[chunkObject] = exportedRequire;
     }
     runtimesRegistry[chunkObject] = exportedRequire;
-    window["wpTools_"+chunkObject] = exportedRequire;
+    window["wpTools_" + chunkObject] = exportedRequire;
   }
 
   // Mark as processed as to not loose scope if somehow passed to Patcher._patchModules()
