@@ -12,6 +12,13 @@ for (let siteConfig of globalConfig.siteConfigs) {
   }
 }
 
+window.wpTools = {
+  globalConfig,
+  activeSiteConfigs: siteConfigs,
+  
+  runtimes: {},
+};
+
 // todo: magicrequire everywhere impl
 if (siteConfigs.size > 0) {
   for (const siteConfig of siteConfigs) {

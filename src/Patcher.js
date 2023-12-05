@@ -85,9 +85,9 @@ export default class Patcher {
 
           value.push.__wpt_injected = true;
           if (realPush === Array.prototype.push) {
-            console.log("[wpTools] Injected " + patcher._chunkObject + " (before webpack runtime)");
+            console.log("[wpTools] Injected " + patcher.chunkObject + " (before webpack runtime)");
           } else {
-            console.log("[wpTools] Injected " + patcher._chunkObject + " (at webpack runtime)");
+            console.log("[wpTools] Injected " + patcher.chunkObject + " (at webpack runtime)");
           }
         }
       },

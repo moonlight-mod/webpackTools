@@ -20,7 +20,7 @@ function injectWpTools(chunkObjectName) {
 
   switch (version) {
     case "modern":
-      // Gross Hack to support both webpack 4 and webpack 5
+      // Gross Hack to support both webpack 4, webpack 5 and cursed rspack discord shenanagains
       var load = function (webpackRequire) {
         webpackRequire("wpTools");
       };
@@ -38,17 +38,19 @@ function injectWpTools(chunkObjectName) {
           },
         };
       };
-      chunkObject.__wpt_everywhere_injected = true
-      chunkObject.push([["wpTools"], { wpTools: getWpToolsFunc(chunkObjectName) }, load]);
+      chunkObject.__wpt_everywhere_injected = true;
+      chunkObject.push([["wpTools"], { wpTools: getWpToolsFunc(chunkObjectName, true) }, load]);
       break;
   }
 }
 
 export function injectEverywhere() {
   for (const key of Object.getOwnPropertyNames(window)) {
-    if ((key.includes("webpackJsonp") || key.includes("webpackChunk") || key.includes("__LOADABLE_LOADED_CHUNKS__")) && !key.startsWith("wpTools")) {
+    if (
+      (key.includes("webpackJsonp") || key.includes("webpackChunk") || key.includes("__LOADABLE_LOADED_CHUNKS__")) &&
+      !key.startsWith("wpTools")
+    ) {
       injectWpTools(key);
     }
   }
 }
-

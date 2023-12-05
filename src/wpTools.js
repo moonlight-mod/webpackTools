@@ -1,13 +1,87 @@
 import matchModule from "./matchModule";
 
-export function getWpToolsFunc(chunkObject) {
+const namedRequireMap = {
+  p: "publicPath",
+  s: "entryModuleId",
+  c: "moduleCache",
+  m: "moduleFactories",
+  e: "ensureChunk",
+  f: "ensureChunkHandlers",
+  E: "prefetchChunk",
+  F: "prefetchChunkHandlers",
+  G: "preloadChunk",
+  H: "preloadChunkHandlers",
+  d: "definePropertyGetters",
+  r: "makeNamespaceObject",
+  t: "createFakeNamespaceObject",
+  n: "compatGetDefaultExport",
+  hmd: "harmonyModuleDecorator",
+  nmd: "nodeModuleDecorator",
+  h: "getFullHash",
+  w: "wasmInstances",
+  v: "instantiateWasm",
+  oe: "uncaughtErrorHandler",
+  nc: "scriptNonce",
+  l: "loadScript",
+  ts: "createScript",
+  tu: "createScriptUrl",
+  tt: "getTrustedTypesPolicy",
+  cn: "chunkName",
+  j: "runtimeId",
+  u: "getChunkScriptFilename",
+  k: "getChunkCssFilename",
+  hu: "getChunkUpdateScriptFilename",
+  hk: "getChunkUpdateCssFilename",
+  x: "startup",
+  X: "startupEntrypoint",
+  O: "onChunksLoaded",
+  C: "externalInstallChunk",
+  i: "interceptModuleExecution",
+  g: "global",
+  S: "shareScopeMap",
+  I: "initializeSharing",
+  R: "currentRemoteGetScope",
+  hmrF: "getUpdateManifestFilename",
+  hmrM: "hmrDownloadManifest",
+  hmrC: "hmrDownloadUpdateHandlers",
+  hmrD: "hmrModuleData",
+  hmrI: "hmrInvalidateModuleHandlers",
+  hmrS: "hmrRuntimeStatePrefix",
+  amdD: "amdDefine",
+  amdO: "amdOptions",
+  System: "system",
+  o: "hasOwnProperty",
+  y: "systemContext",
+  b: "baseURI",
+  U: "relativeUrl",
+  a: "asyncModule",
+};
+
+function getNamedRequire(webpackRequire) {
+  const namedRequireObj = {};
+  Object.getOwnPropertyNames(webpackRequire).forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(namedRequireMap, key)) {
+      namedRequireObj[namedRequireMap[key]] = webpackRequire[key];
+    }
+  });
+  return namedRequireObj;
+}
+
+export function getWpToolsFunc(chunkObject, logSuccess = false) {
   function wpTools(module, exports, webpackRequire) {
+    if (logSuccess) {
+      console.log("[wpTools] wpTools loaded in " + chunkObject);
+    }
+
     // https://github.com/webpack/webpack/blob/main/lib/RuntimeGlobals.js
     // modules functions: webpackRequire.m
     // modules require cache (exports): webpackRequire.c
 
     // TODO: recurse in objects
     function findModulesByExports(keysArg) {
+      if (!webpackRequire.c) {
+        throw new Error("webpack runtime didn't export its moduleCache")
+      }
       const keys = keysArg instanceof Array ? keysArg : [keysArg];
       return Object.entries(webpackRequire.c)
         .filter(([moduleId, exportCache]) => {
@@ -45,29 +119,44 @@ export function getWpToolsFunc(chunkObject) {
       return webpackRequire.m[moduleId];
     }
 
-    // TODO: Obfuscated code helpers
-    // function findObjectFromKey(object, key) {}
-    // function findObjectFromValue(object, value) {}
-    // function findObjectFromKeyValuePair(object, key, value) {}
-    // function findFunctionByMatches(object, search) {}
-
-    // TODO: SWC helpers
-    // function getDefault() {}
-
-    window.wpTools =
-      window["wpTools_" + chunkObject] =
-      module.exports.default =
+    const exportedRequire =
+      (module.exports.default =
       exports.default =
         {
-          findModulesByExports,
+          require: webpackRequire,
+          named: getNamedRequire(webpackRequire),
+          chunkCallback: window[chunkObject],
+
           findModulesByCode,
+          findModulesByExports,
           inspectModule,
-          webpackRequire,
-        };
+        });
+
+    const runtimesRegistry = window.wpTools.runtimes;
+
+    // If already registered with the same chunk object name
+    if (runtimesRegistry[chunkObject]) {
+      console.warn("[wpTools] Multiple active runtimes for " + chunkObject);
+
+      let currId = 0;
+      if (runtimesRegistry[chunkObject].__wpTools_multiRuntime_id) {
+        currId = runtimesRegistry[chunkObject].__wpTools_multiRuntime_id;
+      }
+
+      runtimesRegistry[chunkObject + "_" + currId] = runtimesRegistry[chunkObject];
+
+      currId++;
+      runtimesRegistry[chunkObject + "_" + currId] = exportedRequire;
+
+      // The last runtime load seems to be the one that's most active
+      runtimesRegistry[chunkObject] = exportedRequire;
+    }
+    runtimesRegistry[chunkObject] = exportedRequire;
+    window["wpTools_"+chunkObject] = exportedRequire;
   }
 
   // Mark as processed as to not loose scope if somehow passed to Patcher._patchModules()
   wpTools.__wpt_processed = true;
-  
-  return wpTools
+
+  return wpTools;
 }
