@@ -67,8 +67,8 @@ function getNamedRequire(webpackRequire) {
   return namedRequireObj;
 }
 
-export function getWpToolsFunc(chunkObject, logSuccess = false) {
-  function wpTools(module, exports, webpackRequire) {
+export function getSpacepack(chunkObject, logSuccess = false) {
+  function spacepack(module, exports, webpackRequire) {
     if (logSuccess) {
       console.log("[wpTools] spacepack loaded in " + chunkObject);
     }
@@ -78,7 +78,7 @@ export function getWpToolsFunc(chunkObject, logSuccess = false) {
     // modules require cache (exports): webpackRequire.c
 
     // TODO: recurse in objects
-    function findModulesByExports(keysArg) {
+    function findByExports(keysArg) {
       if (!webpackRequire.c) {
         throw new Error("webpack runtime didn't export its moduleCache");
       }
@@ -98,7 +98,7 @@ export function getWpToolsFunc(chunkObject, logSuccess = false) {
         });
     }
 
-    function findModulesByCode(search) {
+    function findByCode(search) {
       return Object.entries(webpackRequire.m)
         .filter(([moduleId, moduleFunc]) => {
           const funcStr = Function.prototype.toString.apply(moduleFunc);
@@ -197,8 +197,8 @@ export function getWpToolsFunc(chunkObject, logSuccess = false) {
           chunkObject: window[chunkObject],
           name: chunkObject,
 
-          findModulesByCode,
-          findModulesByExports,
+          findByCode,
+          findByExports,
           findObjectFromKey,
           findObjectFromKeyValuePair,
           findObjectFromValue,
@@ -231,7 +231,7 @@ export function getWpToolsFunc(chunkObject, logSuccess = false) {
   }
 
   // Mark as processed as to not loose scope if somehow passed to Patcher._patchModules()
-  wpTools.__wpt_processed = true;
+  spacepack.__wpt_processed = true;
 
-  return wpTools;
+  return spacepack;
 }

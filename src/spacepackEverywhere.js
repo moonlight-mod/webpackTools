@@ -1,4 +1,4 @@
-import { getWpToolsFunc } from "./spacepackLite";
+import { getSpacepack } from "./spacepackLite";
 
 function getWebpackVersion(chunkObject) {
   if (chunkObject instanceof Array) {
@@ -37,7 +37,7 @@ function pushSpacepack(chunkObjectName) {
   switch (version) {
     case "modern":
       chunkObject.__spacepack_everywhere_injected = true;
-      chunkObject.push([["spacepack"], { spacepack: getWpToolsFunc(chunkObjectName, true) }, onChunkLoaded]);
+      chunkObject.push([["spacepack"], { spacepack: getSpacepack(chunkObjectName, true) }, onChunkLoaded]);
       break;
   }
 }

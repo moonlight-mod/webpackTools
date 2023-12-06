@@ -1,5 +1,5 @@
 import matchModule from "./matchModule";
-import { getWpToolsFunc } from "./spacepackLite";
+import { getSpacepack } from "./spacepackLite";
 
 class ConfigValidationError extends Error {}
 
@@ -70,7 +70,7 @@ export default class Patcher {
         name: "spacepack",
         // This is sorta a scope hack.
         // If we rewrap this function, it will lose its scope (in this case the match module import and the chunk object name)
-        run: getWpToolsFunc(this.chunkObject),
+        run: getSpacepack(this.chunkObject),
         entry: true,
       });
     }
