@@ -23,7 +23,7 @@ TODO: Either write own docs about spacepack or link to moonlight docs
 
 ### Full patching support
 
-TODO
+TODO. Writing modules and patches is very similar to the process for moonlight, therefore I'll probably just link to those docs
 
 ## Updating
 To update to the latest webpackTools runtime while maintaining your existing config, edit your userscript and replace the string after `const runtime = ` with https://moonlight-mod.github.io/webpackTools/webpackTools.runtime.json. 
@@ -33,6 +33,8 @@ To update to the latest webpackTools runtime while maintaining your existing con
 Some sites, namely Discord, will start multiple webpack runtimes running on the same webpackChunk object. Duplicate runtimes can be found in `window.wpTools.runtimes`. Injected modules will run multiple times, one for each runtime.
 
 Some sites don't expose their export cache, making `spacepack.findModulesByExports` unusable and `spacepack.exports` undefined.
+
+In Firefox, clicking on links in stacktraces from functions with `//# sourceURL=` will send you to a blank page. It's best to just open them from the sources tab
 
 ## Credits
 
