@@ -270,6 +270,23 @@ export default class Patcher {
     });
   }
 
+  _validatePatchReplacement(replace, name, index) {
+    let indexStr = index === undefined ? "" : `[${index}]`
+    validateProperty(`siteConfigs[${this.name}].patches[${name}].replace${indexStr}`, replace, "match", true, (value) => {
+      return typeof value === "string" || value instanceof RegExp;
+    });
+
+    validateProperty(
+      `siteConfigs[${this.name}].patches[${name}].replace`,
+      replace,
+      "replacement",
+      true,
+      (value) => {
+        return typeof value === "string" || value instanceof Function;
+      },
+    );
+  }
+
   _validatePatchConfig(config) {
     validateProperty(`siteConfigs[${this.name}].patches[?]`, config, "name", true, (value) => {
       return typeof value === "string";
@@ -293,19 +310,13 @@ export default class Patcher {
       return typeof value === "object";
     });
 
-    validateProperty(`siteConfigs[${this.name}].patches[${name}].replace`, config.replace, "match", true, (value) => {
-      return typeof value === "string" || value instanceof RegExp;
-    });
-
-    validateProperty(
-      `siteConfigs[${this.name}].patches[${name}].replace`,
-      config.replace,
-      "replacement",
-      true,
-      (value) => {
-        return typeof value === "string" || value instanceof Function;
-      },
-    );
+    if (config.replace instanceof Array) {
+      config.replace.forEach((replacement, index) => {
+        this._validatePatchReplacement(replacement, name, index);
+      });
+    } else {
+      this._validatePatchReplacement(config.replace, name);
+    }
   }
 
   _validateModuleConfig(config) {
