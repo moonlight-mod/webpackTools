@@ -41,6 +41,16 @@ export default class Patcher {
     this.patchesToApply = new Set();
     if (this.patches) {
       for (const patch of this.patches) {
+        if (patch.replace instanceof Array) {
+          for (const index in patch.replace) {
+            this.patchesToApply.add({
+              name: patch.name + "_" + index,
+              find: patch.find,
+              replace: patch.replace[index],
+            });
+          }
+          continue;
+        }
         this.patchesToApply.add(patch);
       }
     }
@@ -287,9 +297,15 @@ export default class Patcher {
       return typeof value === "string" || value instanceof RegExp;
     });
 
-    validateProperty(`siteConfigs[${this.name}].patches[${name}].replace`, config.replace, "replacement", true, (value) => {
-      return typeof value === "string" || value instanceof Function;
-    });
+    validateProperty(
+      `siteConfigs[${this.name}].patches[${name}].replace`,
+      config.replace,
+      "replacement",
+      true,
+      (value) => {
+        return typeof value === "string" || value instanceof Function;
+      },
+    );
   }
 
   _validateModuleConfig(config) {
