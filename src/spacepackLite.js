@@ -70,7 +70,7 @@ function getNamedRequire(webpackRequire) {
 export function getWpToolsFunc(chunkObject, logSuccess = false) {
   function wpTools(module, exports, webpackRequire) {
     if (logSuccess) {
-      console.log("[wpTools] wpTools loaded in " + chunkObject);
+      console.log("[wpTools] spacepack loaded in " + chunkObject);
     }
 
     // https://github.com/webpack/webpack/blob/main/lib/RuntimeGlobals.js
@@ -120,7 +120,65 @@ export function getWpToolsFunc(chunkObject, logSuccess = false) {
         });
     }
 
-    function inspectModule(moduleId) {
+    function findObjectFromKey(exports, key) {
+      let subKey;
+      if (key.indexOf(".") > -1) {
+        const splitKey = key.split(".");
+        key = splitKey[0];
+        subKey = splitKey[1];
+      }
+      for (const exportKey in exports) {
+        const obj = exports[exportKey];
+        if (obj && obj[key] !== undefined) {
+          if (subKey) {
+            if (obj[key][subKey]) return obj;
+          } else {
+            return obj;
+          }
+        }
+      }
+      return null;
+    }
+
+    function findObjectFromValue(exports, value) {
+      for (const exportKey in exports) {
+        const obj = exports[exportKey];
+        // eslint-disable-next-line eqeqeq
+        if (obj == value) return obj;
+        for (const subKey in obj) {
+          // eslint-disable-next-line eqeqeq
+          if (obj && obj[subKey] == value) {
+            return obj;
+          }
+        }
+      }
+      return null;
+    }
+
+    function findObjectFromKeyValuePair(exports, key, value) {
+      for (const exportKey in exports) {
+        const obj = exports[exportKey];
+        // eslint-disable-next-line eqeqeq
+        if (obj && obj[key] == value) {
+          return obj;
+        }
+      }
+      return null;
+    }
+
+    function findFunctionByStrings(exports, ...strings) {
+      return (
+        Object.entries(exports).filter(
+          ([index, func]) =>
+            typeof func === "function" &&
+            !strings.some(
+              (query) => !(query instanceof RegExp ? func.toString().match(query) : func.toString().includes(query)),
+            ),
+        )?.[0]?.[1] ?? null
+      );
+    }
+
+    function inspect(moduleId) {
       /* TODO: rewrap modules if not patched.
        * This used to isolate modules like wrapping them in the patcher stage did,
        * however this seems to have broken in newer browsers */
@@ -132,12 +190,20 @@ export function getWpToolsFunc(chunkObject, logSuccess = false) {
       exports.default =
         {
           require: webpackRequire,
-          named: getNamedRequire(webpackRequire),
-          chunkCallback: window[chunkObject],
+          modules: webpackRequire.m,
+          cache: webpackRequire.c,
+          
+          __namedRequire: getNamedRequire(webpackRequire),
+          chunkObject: window[chunkObject],
+          name: chunkObject,
 
           findModulesByCode,
           findModulesByExports,
-          inspectModule,
+          findObjectFromKey,
+          findObjectFromKeyValuePair,
+          findObjectFromValue,
+          findFunctionByStrings,
+          inspect,
         });
 
     const runtimesRegistry = window.wpTools.runtimes;
@@ -160,7 +226,8 @@ export function getWpToolsFunc(chunkObject, logSuccess = false) {
       runtimesRegistry[chunkObject] = exportedRequire;
     }
     runtimesRegistry[chunkObject] = exportedRequire;
-    window["wpTools_" + chunkObject] = exportedRequire;
+    window["spacepack_" + chunkObject] = exportedRequire;
+    window["spacepack"] = exportedRequire;
   }
 
   // Mark as processed as to not loose scope if somehow passed to Patcher._patchModules()

@@ -1,6 +1,23 @@
 import matchModule from "./matchModule";
-import { validateProperty } from "./validate";
-import { getWpToolsFunc } from "./wpTools";
+import { getWpToolsFunc } from "./spacepackLite";
+
+class ConfigValidationError extends Error {}
+
+function validateProperty(name, object, key, required, validationCallback) {
+  if (!Object.prototype.hasOwnProperty.call(object, [key])) {
+    if (required) {
+      throw new ConfigValidationError(`Required property not found, missing ${key} in ${name}`);
+    } else {
+      return;
+    }
+  } else {
+    if (!validationCallback(object[key])) {
+      throw new ConfigValidationError(
+        `Failed to validate ${key} in ${name}. The following check failed: \n${validationCallback.toString()}`,
+      );
+    }
+  }
+}
 
 export default class Patcher {
   constructor(config) {
@@ -8,7 +25,7 @@ export default class Patcher {
     this.name = config.name;
     this.chunkObject = config.chunkObject;
     this.webpackVersion = config.webpackVersion.toString();
-    this.inspectAll = config.inspectAll;
+    this.patchAll = config.patchAll;
 
     this.modules = new Set(config.modules ?? []);
     for (const module of this.modules) {
@@ -38,9 +55,9 @@ export default class Patcher {
       }
     }
 
-    if (config.injectWpTools !== false) {
+    if (config.injectSpacepack !== false) {
       this.modulesToInject.add({
-        name: "wpTools",
+        name: "spacepack",
         // This is sorta a scope hack.
         // If we rewrap this function, it will lose its scope (in this case the match module import and the chunk object name)
         run: getWpToolsFunc(this.chunkObject),
@@ -119,7 +136,7 @@ export default class Patcher {
         funcStr = funcStr.replace(patch.replace.match, patch.replace.replacement);
       }
 
-      if (matchingPatches.length > 0 || this.inspectAll) {
+      if (matchingPatches.length > 0 || this.patchAll) {
         let debugString = "";
         if (matchingPatches.length > 0) {
           debugString += "Patched by: " + matchingPatches.map((patch) => patch.name).join(", ");
@@ -226,7 +243,7 @@ export default class Patcher {
       return ["4", "5"].includes(value.toString());
     });
 
-    validateProperty(`siteConfigs[${name}]`, config, "inspectAll", false, (value) => {
+    validateProperty(`siteConfigs[${name}]`, config, "patchAll", false, (value) => {
       return typeof value === "boolean";
     });
 
@@ -238,7 +255,7 @@ export default class Patcher {
       return value instanceof Array;
     });
 
-    validateProperty(`siteConfigs[${name}]`, config, "injectWpTools", false, (value) => {
+    validateProperty(`siteConfigs[${name}]`, config, "injectSpacepack", false, (value) => {
       return typeof value === "boolean";
     });
   }
@@ -303,6 +320,9 @@ export default class Patcher {
     validateProperty(`siteConfigs[${this.name}].modules[${name}]`, config, "entry", false, (value) => {
       return typeof value === "boolean";
     });
+    if (config.entry === undefined) {
+      config.entry = false;
+    }
 
     // Possible future thing
     // validateProperty(`siteConfigs[${this.name}].modules[${name}]`, config, "rewrap", false, (value) => {

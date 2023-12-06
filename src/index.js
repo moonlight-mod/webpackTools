@@ -1,5 +1,5 @@
 import Patcher from "./Patcher";
-import { injectEverywhere } from "./injectEverywhere";
+import { spacepackEverywhere } from "./spacepackEverywhere";
 
 export const globalConfig = window.__webpackTools_config;
 delete window.__webpackTools_config;
@@ -15,16 +15,20 @@ for (let siteConfig of globalConfig.siteConfigs) {
 window.wpTools = {
   globalConfig,
   activeSiteConfigs: siteConfigs,
-  
+  spacepackEverywhereDetect: () => {
+    spacepackEverywhere(globalConfig.spacepackEverywhere);
+  },
+
   runtimes: {},
 };
 
-// todo: magicrequire everywhere impl
 if (siteConfigs.size > 0) {
   for (const siteConfig of siteConfigs) {
     const patcher = new Patcher(siteConfig);
     patcher.run();
   }
-} else if (globalConfig.wpToolsEverywhere) {
-  window.addEventListener("load", injectEverywhere);
+} else if (globalConfig?.spacepackEverywhere?.enabled !== false) {
+  window.addEventListener("load", () => {
+    spacepackEverywhere(globalConfig.spacepackEverywhere);
+  });
 }
