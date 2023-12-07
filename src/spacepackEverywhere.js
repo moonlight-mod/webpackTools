@@ -9,7 +9,7 @@ function getWebpackVersion(chunkObject) {
 }
 
 // Gross Hack to support both webpack 4, webpack 5
-const onChunkLoaded = function (webpackRequire) {
+export const onChunkLoaded = function (webpackRequire) {
   webpackRequire("spacepack");
 };
 onChunkLoaded[0] = ["spacepack"];

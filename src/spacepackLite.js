@@ -70,7 +70,11 @@ function getNamedRequire(webpackRequire) {
 export function getSpacepack(chunkObject, logSuccess = false) {
   function spacepack(module, exports, webpackRequire) {
     if (logSuccess) {
-      console.log("[wpTools] spacepack loaded in " + chunkObject);
+      if (!chunkObject) {
+        console.log("[wpTools] spacepack loaded");
+      } else {
+        console.log("[wpTools] spacepack loaded in " + chunkObject);
+      }
     }
 
     // https://github.com/webpack/webpack/blob/main/lib/RuntimeGlobals.js
@@ -192,10 +196,8 @@ export function getSpacepack(chunkObject, logSuccess = false) {
           require: webpackRequire,
           modules: webpackRequire.m,
           cache: webpackRequire.c,
-          
+
           __namedRequire: getNamedRequire(webpackRequire),
-          chunkObject: window[chunkObject],
-          name: chunkObject,
 
           findByCode,
           findByExports,
@@ -206,27 +208,34 @@ export function getSpacepack(chunkObject, logSuccess = false) {
           inspect,
         });
 
-    const runtimesRegistry = window.wpTools.runtimes;
-
-    // If already registered with the same chunk object name
-    if (runtimesRegistry[chunkObject]) {
-      console.warn("[wpTools] Multiple active runtimes for " + chunkObject);
-
-      let currId = 0;
-      if (runtimesRegistry[chunkObject].__wpTools_multiRuntime_id) {
-        currId = runtimesRegistry[chunkObject].__wpTools_multiRuntime_id;
-      }
-
-      runtimesRegistry[chunkObject + "_" + currId] = runtimesRegistry[chunkObject];
-
-      currId++;
-      runtimesRegistry[chunkObject + "_" + currId] = exportedRequire;
-
-      // The last runtime load seems to be the one that's most active
-      runtimesRegistry[chunkObject] = exportedRequire;
+    if (chunkObject) {
+      exportedRequire.chunkObject = window[chunkObject];
+      exportedRequire.name = chunkObject;
     }
-    runtimesRegistry[chunkObject] = exportedRequire;
-    window["spacepack_" + chunkObject] = exportedRequire;
+
+    if (window.wpTools) {
+      const runtimesRegistry = window.wpTools.runtimes;
+
+      // If already registered with the same chunk object name
+      if (runtimesRegistry[chunkObject]) {
+        console.warn("[wpTools] Multiple active runtimes for " + chunkObject);
+
+        let currId = 0;
+        if (runtimesRegistry[chunkObject].__wpTools_multiRuntime_id) {
+          currId = runtimesRegistry[chunkObject].__wpTools_multiRuntime_id;
+        }
+
+        runtimesRegistry[chunkObject + "_" + currId] = runtimesRegistry[chunkObject];
+
+        currId++;
+        runtimesRegistry[chunkObject + "_" + currId] = exportedRequire;
+
+        // The last runtime load seems to be the one that's most active
+        runtimesRegistry[chunkObject] = exportedRequire;
+      }
+      runtimesRegistry[chunkObject] = exportedRequire;
+      window["spacepack_" + chunkObject] = exportedRequire;
+    }
     window["spacepack"] = exportedRequire;
   }
 

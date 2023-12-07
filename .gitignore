@@ -1,4 +1,5 @@
+node_modules
 dist/webpackTools.user.js
 dist/webpackTools.runtime.js
 dist/webpackTools.runtime.json
-node_modules
+dist/webpackTools.snippet.js

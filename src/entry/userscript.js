@@ -1,5 +1,5 @@
-import Patcher from "./Patcher";
-import { spacepackEverywhere } from "./spacepackEverywhere";
+import Patcher from "../Patcher";
+import { spacepackEverywhere } from "../spacepackEverywhere";
 
 export const globalConfig = window.__webpackTools_config;
 delete window.__webpackTools_config;
