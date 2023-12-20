@@ -74,6 +74,16 @@ export default class Patcher {
         entry: true,
       });
     }
+
+    // Some ven and cyn magic
+    if (config.patchEntryChunk) {
+      this.modulesToInject.add({
+        name: "patchEntryChunk",
+        run: (module, exports, webpackRequire) => {this._patchModules(webpackRequire.m)},
+        entry: true,
+      });
+      this.patchEntryChunk = true;
+    }
   }
 
   run() {
@@ -92,6 +102,12 @@ export default class Patcher {
     Object.defineProperty(window, this.chunkObject, {
       set: function set(value) {
         realChunkObject = value;
+        if (patcher.patchEntryChunk) {
+          let newChunk = [["patchEntryChunk"], {}]
+          patcher._injectModules(newChunk);
+          realChunkObject.push(newChunk);
+        }
+
         // Don't infinitely re-wrap .push()
         // Every webpack chunk reassigns the chunk array, triggering the setter every time
         // `(self.webpackChunk = self.webpackChunk || [])`
@@ -268,23 +284,27 @@ export default class Patcher {
     validateProperty(`siteConfigs[${name}]`, config, "injectSpacepack", false, (value) => {
       return typeof value === "boolean";
     });
+
+    validateProperty(`siteConfigs[${name}]`, config, "patchEntryChunk", false, (value) => {
+      return typeof value === "boolean";
+    });
   }
 
   _validatePatchReplacement(replace, name, index) {
-    let indexStr = index === undefined ? "" : `[${index}]`
-    validateProperty(`siteConfigs[${this.name}].patches[${name}].replace${indexStr}`, replace, "match", true, (value) => {
-      return typeof value === "string" || value instanceof RegExp;
-    });
-
+    let indexStr = index === undefined ? "" : `[${index}]`;
     validateProperty(
-      `siteConfigs[${this.name}].patches[${name}].replace`,
+      `siteConfigs[${this.name}].patches[${name}].replace${indexStr}`,
       replace,
-      "replacement",
+      "match",
       true,
       (value) => {
-        return typeof value === "string" || value instanceof Function;
+        return typeof value === "string" || value instanceof RegExp;
       },
     );
+
+    validateProperty(`siteConfigs[${this.name}].patches[${name}].replace`, replace, "replacement", true, (value) => {
+      return typeof value === "string" || value instanceof Function;
+    });
   }
 
   _validatePatchConfig(config) {
