@@ -1,7 +1,5 @@
 # webpackTools
 
-⚠️ All (including the name of the project) is subject to change, I still haven't settled entirely on the structure of everything ⚠️
-
 A userscript for reverse engineering, debugging, and modifying sites using webpack.
 
 ## Installing
@@ -23,7 +21,29 @@ TODO: Either write own docs about spacepack or link to moonlight docs
 
 ### Full patching support
 
-TODO. Writing modules and patches is very similar to the process for moonlight, therefore I'll probably just link to those docs
+Patching and module injection are explained in the [Moonlight docs](https://moonlight-mod.github.io/docs/ext-dev/webpack). 
+
+Patches are nearly identical to Moonlight, minus the typing.
+
+Module injection is different to Moonlight. Anything handled by dependencies in Moonlight is handled with needs in wpTools. Needs can be a string or regexp match for a module, or an object with a defined `moduleId`. Modules you define will only be injected after all their needs are met.
+
+```js
+{
+  name: "needsDemo", 
+  // Set of strings, or regexes of modules that need to be loaded before injecting this one. can also be 
+  // `{moduleId: <moduleId>}` if depending on other injected or named modules.
+  needs: new Set(
+    "stringMatch!",
+    /regexpMatch/,
+    {moduleId: "spacepack"} // Match by module id.
+  ), 
+  entry: true,
+  run: function (module, exports, webpackRequire) {
+    webpackRequire("spacepack")
+    console.log("Module injection works!!!");
+  },
+},
+```
 
 ## Updating
 To update to the latest webpackTools runtime while maintaining your existing config, edit your userscript and replace the string after `const runtime = ` with https://moonlight-mod.github.io/webpackTools/webpackTools.runtime.json. 
@@ -35,6 +55,8 @@ Some sites, namely Discord, will start multiple webpack runtimes running on the 
 Some sites don't expose their export cache, making `spacepack.findModulesByExports` unusable and `spacepack.exports` undefined.
 
 In Firefox, clicking on links in stacktraces from functions with `//# sourceURL=` will send you to a blank page. It's best to just open them from the sources tab
+
+Some sites have impropper scoping and `patchAll` will cause the page to fail to load. Patching will still work in isolation as long as you dont patch a module using impropper scoping
 
 ## Credits
 
