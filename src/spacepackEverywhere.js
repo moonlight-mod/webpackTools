@@ -33,7 +33,7 @@ function pushSpacepack(chunkObjectName) {
     return;
   }
   const version = getWebpackVersion(chunkObject);
-  console.log("[wpTools] Detected " + chunkObjectName + " using webpack " + version);
+  console.log("[wpTools] Got " + chunkObjectName + " using webpack " + version + " :)");
   switch (version) {
     case "modern":
       chunkObject.__spacepack_everywhere_injected = true;
