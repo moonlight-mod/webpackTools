@@ -39,6 +39,9 @@ function pushSpacepack(chunkObjectName) {
       chunkObject.__spacepack_everywhere_injected = true;
       chunkObject.push([["spacepack"], { spacepack: getSpacepack(chunkObjectName, true) }, onChunkLoaded]);
       break;
+    case "legacy":
+      console.log("[wpTools] Legacy is not currently supported. Please share this site to https://github.com/moonlight-mod/webpackTools/issues/1 to help with development of legacy support");
+      break;
   }
 }
 
