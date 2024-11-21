@@ -11,8 +11,7 @@
 // ==/UserScript==
 
 (() => {
-  const config = {
-  };
+  const config = {};
 
   /* // Example config
   const config = {
@@ -38,6 +37,7 @@
         // without the whole rest of the chunk, but has a noticable performance impact (Default: false)
         patchAll: true,
         injectSpacepack: true, // Whether to inject spacepack (Default: true)
+        patchEntryChunk: true, // Some webpack compatible clones populate webpackRequire.m in the runtime chunk. This patches those modules.
         patches: [
           {
             // Used for debugging purposes, logging if a patch fails (TODO) and a comment of which
