@@ -67,6 +67,27 @@ function getNamedRequire(webpackRequire) {
   return namedRequireObj;
 }
 
+// from ven
+function extractPrivateCache(webpackRequire) {
+  let cache = null;
+  const sym = Symbol();
+
+  Object.defineProperty(Object.prototype, sym, {
+    get() {
+      cache = this;
+      return { exports: {} };
+    },
+    set() { },
+    configurable: true,
+  })
+
+  webpackRequire(sym);
+  delete Object.prototype[sym];
+  if (cache) delete cache[sym];
+
+  return cache;
+}
+
 export function getSpacepack(chunkObject, logSuccess = false) {
   function spacepack(module, exports, webpackRequire) {
     if (logSuccess) {
@@ -81,13 +102,15 @@ export function getSpacepack(chunkObject, logSuccess = false) {
     // modules functions: webpackRequire.m
     // modules require cache (exports): webpackRequire.c
 
+    const cache = webpackRequire.c ?? extractPrivateCache(webpackRequire);
+
     // TODO: recurse in objects
     function findByExports(keysArg) {
-      if (!webpackRequire.c) {
-        throw new Error("webpack runtime didn't export its moduleCache");
+      if (!cache) {
+        throw new Error("Unable to enumerate webpack module cache");
       }
       const keys = keysArg instanceof Array ? keysArg : [keysArg];
-      return Object.entries(webpackRequire.c)
+      return Object.entries(cache)
         .filter(([moduleId, exportCache]) => {
           return !keys.some((searchKey) => {
             return !(
@@ -195,7 +218,8 @@ export function getSpacepack(chunkObject, logSuccess = false) {
         {
           require: webpackRequire,
           modules: webpackRequire.m,
-          cache: webpackRequire.c,
+          cache: cache,
+
 
           __namedRequire: getNamedRequire(webpackRequire),
 
