@@ -52,8 +52,6 @@ To update to the latest webpackTools runtime while maintaining your existing con
 
 Some sites, namely Discord, will start multiple webpack runtimes running on the same webpackChunk object. Duplicate runtimes can be found in `window.wpTools.runtimes`. Injected modules will run multiple times, one for each runtime.
 
-Some sites don't expose their export cache, making `spacepack.findModulesByExports` unusable and `spacepack.exports` undefined.
-
 In Firefox, clicking on links in stacktraces from functions with `//# sourceURL=` will send you to a blank page. It's best to just open them from the sources tab
 
 Some sites have impropper scoping and `patchAll` will cause the page to fail to load. Patching will still work in isolation as long as you dont patch a module using impropper scoping
