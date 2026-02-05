@@ -77,9 +77,9 @@ function extractPrivateCache(webpackRequire) {
       cache = this;
       return { exports: {} };
     },
-    set() { },
+    set() {},
     configurable: true,
-  })
+  });
 
   webpackRequire(sym);
   delete Object.prototype[sym];
@@ -220,8 +220,7 @@ export function getSpacepack(chunkObject, logSuccess = false) {
           modules: webpackRequire.m,
           cache: cache,
 
-
-          __namedRequire: getNamedRequire(webpackRequire),
+          namedRequire: getNamedRequire(webpackRequire),
 
           findByCode,
           findByExports,
@@ -242,24 +241,16 @@ export function getSpacepack(chunkObject, logSuccess = false) {
 
       // If already registered with the same chunk object name
       if (runtimesRegistry[chunkObject]) {
-        console.warn("[wpTools] Multiple active runtimes for " + chunkObject);
+        console.warn(
+          `[wpTools] Duplicate runtimes for ${chunkObject}. Spacepack for other runtimes is accessible through wpTools.runtimes if necesary. `,
+        );
 
-        let currId = 0;
-        if (runtimesRegistry[chunkObject].__wpTools_multiRuntime_id) {
-          currId = runtimesRegistry[chunkObject].__wpTools_multiRuntime_id;
-        }
-
-        runtimesRegistry[chunkObject + "_" + currId] = runtimesRegistry[chunkObject];
-
-        currId++;
-        runtimesRegistry[chunkObject + "_" + currId] = exportedRequire;
-
-        // The last runtime load seems to be the one that's most active
-        runtimesRegistry[chunkObject] = exportedRequire;
+        runtimesRegistry[chunkObject].push(exportedRequire);
+      } else {
+        runtimesRegistry[chunkObject] = [exportedRequire];
       }
-      runtimesRegistry[chunkObject] = exportedRequire;
-      window["spacepack_" + chunkObject] = exportedRequire;
     }
+    window["spacepack_" + chunkObject] = exportedRequire;
     window["spacepack"] = exportedRequire;
   }
 
