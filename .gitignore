@@ -1,5 +1,5 @@
 node_modules
 dist/webpackTools.user.js
 dist/webpackTools.runtime.js
-dist/webpackTools.runtime.json
+dist/webpackTools.tampermonkey-runtime.js
 dist/webpackTools.snippet.js

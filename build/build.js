@@ -25,5 +25,5 @@ const templateStr = await fs.promises.readFile("userscriptTemplate.js", { encodi
 const runtimeStr = JSON.stringify(runtimeWithSourceUrl);
 
 fs.promises.writeFile("dist/webpackTools.user.js", templateStr.replace('"{{ REPLACE_ME RUNTIME }}"', runtimeStr));
-fs.promises.writeFile("dist/webpackTools.runtime.json", runtimeStr);
 fs.promises.writeFile("dist/webpackTools.runtime.js", userscriptBuildResult.outputFiles[0].text);
+fs.promises.writeFile("dist/webpackTools.tampermonkey-runtime.js", "const runtime = " + runtimeStr + ";\n");
