@@ -79,7 +79,9 @@ export default class Patcher {
     if (config.patchEntryChunk) {
       this.modulesToInject.add({
         name: "patchEntryChunk",
-        run: (module, exports, webpackRequire) => {this._patchModules(webpackRequire.m)},
+        run: (module, exports, webpackRequire) => {
+          this._patchModules(webpackRequire.m);
+        },
         entry: true,
       });
       this.patchEntryChunk = true;
@@ -103,7 +105,7 @@ export default class Patcher {
       set: function set(value) {
         realChunkObject = value;
         if (patcher.patchEntryChunk) {
-          let newChunk = [["patchEntryChunk"], {}]
+          let newChunk = [["patchEntryChunk"], {}];
           patcher._injectModules(newChunk);
           realChunkObject.push(newChunk);
         }
@@ -149,6 +151,22 @@ export default class Patcher {
         continue;
       }
       let funcStr = Function.prototype.toString.apply(modules[id]);
+
+      // rspack sometimes gives functions as `1234(e,t,n){...}` this normalizes that
+      if (!funcStr.startsWith("function")) {
+        // make sure we're not mangling an arrow function
+        let paramsEndIndex = funcStr.indexOf(")");
+        if (
+          paramsEndIndex === -1 ||
+          !funcStr
+            .slice(paramsEndIndex + 1) 
+            .trim() // Delete whitespace and newlines
+            .startsWith("=>")
+        ) {
+          let startIndex = funcStr.indexOf("(");
+          funcStr = "function" + funcStr.slice(startIndex);
+        }
+      }
 
       const matchingPatches = [];
       for (const patch of this.patchesToApply) {
